@@ -18,7 +18,7 @@ const ContentStyle = styled("div")({
   justifyContent: "center",
   flexDirection: "column",
   background: "white",
-  
+  minWidth:320,
 });
 
 let easing = [0.6, -0.05, 0.01, 0.99];

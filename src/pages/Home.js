@@ -1,52 +1,93 @@
-import React from "react";
-import { Button, Typography, Container, Box } from "@mui/material";
+import { useState } from "react";
 import { useTheme } from "@mui/material/styles";
-import "@mobiscroll/react/dist/css/mobiscroll.min.css";
-import { Eventcalendar, getJson, toast } from "@mobiscroll/react";
-// import Logo from "../components/Logo";
-//////////////////////////////////////
+import Paper from "@mui/material/Paper";
+import {
+  EditingState,
+  IntegratedEditing,
+  ViewState,
+} from "@devexpress/dx-react-scheduler";
+import {
+  Scheduler,
+  DayView,
+  Appointments,
+  CurrentTimeIndicator,
+  AppointmentTooltip,
+  AppointmentForm,
+  ConfirmationDialog,
+} from "@devexpress/dx-react-scheduler-material-ui";
 
-const Home = ({ setAuth }) => {
+const currentDate = new Date();
+const schedulerData = [
+  {
+    startDate: new Date(),
+    endDate: new Date() + 1,
+    title: "Meeting",
+  },
+  {
+    startDate: "2022-11-01T12:00",
+    endDate: "2018-11-01T13:30",
+    title: "Go to a gym",
+  },
+];
+
+const Appointment = ({ children, style, ...restProps }) => (
+  <Appointments.Appointment
+    {...restProps}
+    style={{
+      ...style,
+      backgroundColor: "#FFC107",
+      borderRadius: "8px",
+    }}
+  >
+    {children}
+  </Appointments.Appointment>
+);
+
+const Home = ({ setAuth, addShift, shifts, deleteShift }) => {
   const theme = useTheme();
 
-  const [myEvents, setEvents] = React.useState([]);
+  const [data, setData] = useState(schedulerData);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [addedAppointment, setAddedAppointment] = useState({});
+  const [appointmentChanges, setAppointmentChanges] = useState({});
+  const [editingAppointment, setEditingAppointment] = useState(undefined);
 
-  React.useEffect(() => {
-    getJson(
-      "https://trial.mobiscroll.com/events/?vers=5",
-      (events) => {
-        setEvents(events);
-      },
-      "jsonp"
-    );
-  }, []);
 
-  const onEventClick = React.useCallback((event) => {
-    toast({
-      message: event.event.title,
-    });
-  }, []);
+  const changeAddedAppointment = (addedAppointment) => {
+    setAddedAppointment(addedAppointment);
+  };
 
-  const view = React.useMemo(() => {
-    return {
-      schedule: { type: "day" },
-    };
-  }, []);
+  const changeAppointmentChanges = (appointmentChanges) => {
+    setAppointmentChanges(appointmentChanges);
+  };
+
+  const changeEditingAppointment = (editingAppointment) => {
+    setEditingAppointment(editingAppointment);
+  };
+
+  const commitChanges = ({ added, changed, deleted }) => {
+    let newData = [...data];
+    if (added) {
+      const startingAddedId = newData > 0 ? newData[data.length - 1].id + 1 : 0;
+      newData = [...newData, { id: startingAddedId, ...added }];
+      // addShift(added);
+    }
+    if (changed) {
+      newData = newData.map((appointment) =>
+        changed[appointment.id]
+          ? { ...appointment, ...changed[appointment.id] }
+          : appointment
+      );
+      // updateShift(changed);
+    }
+    if (deleted !== undefined) {
+      console.log(deleted);
+      newData = newData.filter(appointment => appointment.id !== deleted);
+    }
+    setData(newData);
+  };
 
   return (
-    <Eventcalendar
-      theme="ios"
-      themeVariant="light"
-      clickToCreate={true}
-      dragToCreate={true}
-      dragToMove={true}
-      dragToResize={true}
-      eventDelete={true}
-      data={myEvents}
-      view={view}
-      onEventClick={onEventClick}
-    />
-
     // <Container
     //   maxWidth="lg"
     //   sx={{
@@ -57,34 +98,34 @@ const Home = ({ setAuth }) => {
     //     height: "100vh",
     //   }}
     // >
-    //   <Box sx={{ mb: 5, mt: -10 }}>
-    //     {/* <Logo /> */}
-    //   </Box>
-    //   <Typography
-    //     sx={{
-    //       textAlign: "center",
-    //       marginTop: "-4rem",
-    //       fontSize: "5rem",
-    //       fontWeight: 700,
-    //       letterSpacing: "-0.5rem",
-    //       display: "inline-block",
-    //       whiteSpace: "nowrap",
-    //       [theme.breakpoints.down("sm")]: {
-    //         fontSize: "4rem",
-    //         letterSpacing: "-0.4rem",
-    //       },
-    //     }}
-    //     gutterBottom
-    //   >
-    //     Welcome Back
-    //   </Typography>
 
     //   <Button size="large" variant="contained" onClick={() => setAuth(false)}>
     //     Log out
     //   </Button>
     // </Container>
+    <Paper>
+      <Scheduler data={data} height={600}>
+        <ViewState currentDate={currentDate} />
+        <EditingState
+          onCommitChanges={commitChanges}
+          addedAppointment={addedAppointment}
+          onAddedAppointmentChange={changeAddedAppointment}
+          appointmentChanges={appointmentChanges}
+          onAppointmentChangesChange={changeAppointmentChanges}
+          editingAppointment={editingAppointment}
+          onEditingAppointmentChange={changeEditingAppointment}
+
+        />
+        <IntegratedEditing />
+        <DayView startDayHour={0} endDayHour={24} />
+        <ConfirmationDialog />
+        <Appointments appointmentComponent={Appointment} />
+        <AppointmentTooltip showOpenButton showDeleteButton />
+        <AppointmentForm />
+        <CurrentTimeIndicator />
+      </Scheduler>
+    </Paper>
   );
 };
-
 
 export default Home;
