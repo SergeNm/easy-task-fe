@@ -1,131 +1,250 @@
-import { useState } from "react";
-import { useTheme } from "@mui/material/styles";
-import Paper from "@mui/material/Paper";
-import {
-  EditingState,
-  IntegratedEditing,
-  ViewState,
-} from "@devexpress/dx-react-scheduler";
-import {
-  Scheduler,
-  DayView,
-  Appointments,
-  CurrentTimeIndicator,
-  AppointmentTooltip,
-  AppointmentForm,
-  ConfirmationDialog,
-} from "@devexpress/dx-react-scheduler-material-ui";
+import * as React from "react";
+import { styled, useTheme } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import MuiDrawer from "@mui/material/Drawer";
+import MuiAppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import List from "@mui/material/List";
+import CssBaseline from "@mui/material/CssBaseline";
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Kid from "../components/Kid";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
+import LogoutIcon from "@mui/icons-material/Logout";
+import PeopleIcon from "@mui/icons-material/People";
+import ReviewsIcon from "@mui/icons-material/Reviews";
+import { useDispatch } from "react-redux";
+import { setTab } from "../redux/slices/user.slice";
+import { useNavigate } from "react-router-dom";
+import Parent from "../components/Parent";
 
-const currentDate = new Date();
-const schedulerData = [
-  {
-    startDate: new Date(),
-    endDate: new Date() + 1,
-    title: "Meeting",
+const drawerWidth = 240;
+
+const openedMixin = (theme) => ({
+  width: drawerWidth,
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
+  overflowX: "hidden",
+});
+
+const closedMixin = (theme) => ({
+  transition: theme.transitions.create("width", {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  overflowX: "hidden",
+  width: `calc(${theme.spacing(7)} + 1px)`,
+  [theme.breakpoints.up("sm")]: {
+    width: `calc(${theme.spacing(8)} + 1px)`,
   },
-  {
-    startDate: "2022-11-01T12:00",
-    endDate: "2018-11-01T13:30",
-    title: "Go to a gym",
-  },
-];
+});
 
-const Appointment = ({ children, style, ...restProps }) => (
-  <Appointments.Appointment
-    {...restProps}
-    style={{
-      ...style,
-      backgroundColor: "#FFC107",
-      borderRadius: "8px",
-    }}
-  >
-    {children}
-  </Appointments.Appointment>
-);
+const DrawerHeader = styled("div")(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  padding: theme.spacing(0, 1),
+  // necessary for content to be below app bar
+  ...theme.mixins.toolbar,
+}));
 
-const Home = ({ setAuth, addShift, shifts, deleteShift }) => {
+const AppBar = styled(MuiAppBar, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  background: "#51C8BC",
+  transition: theme.transitions.create(["width", "margin"], {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.leavingScreen,
+  }),
+  ...(open && {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(["width", "margin"], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  }),
+}));
+
+const Drawer = styled(MuiDrawer, {
+  shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  whiteSpace: "nowrap",
+  boxSizing: "border-box",
+  ...(open && {
+    ...openedMixin(theme),
+    "& .MuiDrawer-paper": openedMixin(theme),
+  }),
+  ...(!open && {
+    ...closedMixin(theme),
+    "& .MuiDrawer-paper": closedMixin(theme),
+  }),
+}));
+
+export default function MiniDrawer({ role, menuItems, menuItems2 }) {
   const theme = useTheme();
+  const [open, setOpen] = React.useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [data, setData] = useState(schedulerData);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [addedAppointment, setAddedAppointment] = useState({});
-  const [appointmentChanges, setAppointmentChanges] = useState({});
-  const [editingAppointment, setEditingAppointment] = useState(undefined);
-
-
-  const changeAddedAppointment = (addedAppointment) => {
-    setAddedAppointment(addedAppointment);
+  const handleDrawerOpen = () => {
+    setOpen(true);
   };
 
-  const changeAppointmentChanges = (appointmentChanges) => {
-    setAppointmentChanges(appointmentChanges);
-  };
-
-  const changeEditingAppointment = (editingAppointment) => {
-    setEditingAppointment(editingAppointment);
-  };
-
-  const commitChanges = ({ added, changed, deleted }) => {
-    let newData = [...data];
-    if (added) {
-      const startingAddedId = newData > 0 ? newData[data.length - 1].id + 1 : 0;
-      newData = [...newData, { id: startingAddedId, ...added }];
-      // addShift(added);
-    }
-    if (changed) {
-      newData = newData.map((appointment) =>
-        changed[appointment.id]
-          ? { ...appointment, ...changed[appointment.id] }
-          : appointment
-      );
-      // updateShift(changed);
-    }
-    if (deleted !== undefined) {
-      console.log(deleted);
-      newData = newData.filter(appointment => appointment.id !== deleted);
-    }
-    setData(newData);
+  const handleDrawerClose = () => {
+    setOpen(false);
   };
 
   return (
-    // <Container
-    //   maxWidth="lg"
-    //   sx={{
-    //     display: "flex",
-    //     alignItems: "center",
-    //     justifyContent: "center",
-    //     flexDirection: "column",
-    //     height: "100vh",
-    //   }}
-    // >
-
-    //   <Button size="large" variant="contained" onClick={() => setAuth(false)}>
-    //     Log out
-    //   </Button>
-    // </Container>
-    <Paper>
-      <Scheduler data={data} height={600}>
-        <ViewState currentDate={currentDate} />
-        <EditingState
-          onCommitChanges={commitChanges}
-          addedAppointment={addedAppointment}
-          onAddedAppointmentChange={changeAddedAppointment}
-          appointmentChanges={appointmentChanges}
-          onAppointmentChangesChange={changeAppointmentChanges}
-          editingAppointment={editingAppointment}
-          onEditingAppointmentChange={changeEditingAppointment}
-
-        />
-        <IntegratedEditing />
-        <DayView startDayHour={0} endDayHour={24} />
-        <ConfirmationDialog />
-        <Appointments appointmentComponent={Appointment} />
-        <AppointmentTooltip showOpenButton showDeleteButton />
-        <AppointmentForm />
-        <CurrentTimeIndicator />
-      </Scheduler>
-    </Paper>
+    <Box sx={{ display: "flex" }}>
+      <CssBaseline />
+      <AppBar position="fixed" open={open}>
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={handleDrawerOpen}
+            edge="start"
+            sx={{
+              marginRight: 5,
+              ...(open && { display: "none" }),
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            {role === "parent" ? "Parent" : "Kid"}
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <Drawer variant="permanent" open={open}>
+        <DrawerHeader>
+          <IconButton onClick={handleDrawerClose}>
+            {theme.direction === "rtl" ? (
+              <ChevronRightIcon />
+            ) : (
+              <ChevronLeftIcon />
+            )}
+          </IconButton>
+        </DrawerHeader>
+        <Divider />
+        <List>
+          {menuItems &&
+            menuItems.map((text, index) => (
+              <ListItem
+                key={text}
+                disablePadding
+                sx={{ display: "block" }}
+                onClick={
+                  text === "All tasks"
+                    ? () => {
+                        dispatch(setTab("All tasks"));
+                      }
+                    : text === "Daily tasks"
+                    ? () => {
+                        dispatch(setTab("Daily tasks"));
+                      }
+                    : text === "Kids"
+                    ? () => {
+                        dispatch(setTab("Kids"));
+                      }
+                    : text === "Requests"
+                    ? () => {
+                        dispatch(setTab("Requests"));
+                      }
+                    : () => {}
+                }
+              >
+                <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? "initial" : "center",
+                    px: 2.5,
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : "auto",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {text === "Daily tasks" ? (
+                      <AccessTimeIcon />
+                    ) : text === "All tasks" ? (
+                      <FormatListNumberedIcon />
+                    ) : text === "Kids" ? (
+                      <PeopleIcon />
+                    ) : text === "Requests" ? (
+                      <ReviewsIcon />
+                    ) : (
+                      null
+                    )}
+                  </ListItemIcon>
+                  <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+        </List>
+        <Divider />
+        <List>
+          {menuItems2 &&
+            menuItems2.map((text, index) => (
+              <ListItem
+                key={text}
+                disablePadding
+                sx={{ display: "block" }}
+                onClick={
+                  text === "logout"
+                    ? () => {
+                        localStorage.removeItem("token");
+                        navigate("/login");
+                      }
+                    : () => {}
+                }
+              >
+                <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? "initial" : "center",
+                    px: 2.5,
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : "auto",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {text === "logout" ? <LogoutIcon /> : null}
+                  </ListItemIcon>
+                  <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+        </List>
+      </Drawer>
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <DrawerHeader />
+        <Box>
+          {role === "kid" ? <Kid /> : role === "parent" ? <Parent /> : <div />}
+        </Box>
+      </Box>
+    </Box>
   );
-};
-
-export default Home;
+}

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import TextField from "@material-ui/core/TextField";
 import { Form, FormikProvider, useFormik } from "formik";
 import * as Yup from "yup";
 
@@ -11,11 +12,14 @@ import {
   InputAdornment,
   Link,
   Stack,
-  TextField,
+  // TextField,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
+import { fetchLogin } from "../redux/thunks/user.thunk";
+import { setUser } from "../redux/slices/user.slice";
+import { useDispatch, useSelector } from "react-redux";
 
 let easing = [0.6, -0.05, 0.01, 0.99];
 const animate = {
@@ -31,8 +35,9 @@ const animate = {
 const LoginForm = ({ setAuth }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+  const { user, isLoading, error } = useSelector((state) => state.user);
   const from = location.state?.from?.pathname || "/";
-
   const [showPassword, setShowPassword] = useState(false);
 
   const LoginSchema = Yup.object().shape({
@@ -49,12 +54,19 @@ const LoginForm = ({ setAuth }) => {
       remember: true,
     },
     validationSchema: LoginSchema,
-    onSubmit: () => {
-      console.log("submitting...");
+    onSubmit: async () => {
+      const { email, password } = formik.values;
+      const res = await dispatch(fetchLogin({ email, password }));
+      const { token } = res.payload;
+      token && localStorage.setItem("token", token);
+     
       setTimeout(() => {
-        console.log("submited!!");
-        setAuth(true);
-        navigate(from, { replace: true });
+        if (res.payload.token) {
+          setAuth(true);
+          navigate(from, { replace: true });
+        } else {
+          alert("Invalid email or password");
+        }
       }, 2000);
     },
   });
@@ -62,10 +74,10 @@ const LoginForm = ({ setAuth }) => {
   const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } =
     formik;
 
+  
+
   return (
-    <FormikProvider
-      value={formik}
-    >
+    <FormikProvider value={formik}>
       <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
         <Box
           component={motion.div}
@@ -90,12 +102,13 @@ const LoginForm = ({ setAuth }) => {
           >
             <TextField
               fullWidth
-              autoComplete="username"
+              autoComplete="email"
               type="email"
               label="Email Address"
               {...getFieldProps("email")}
               error={Boolean(touched.email && errors.email)}
               helperText={touched.email && errors.email}
+              variant="standard"
             />
 
             <TextField

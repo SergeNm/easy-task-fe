@@ -6,7 +6,7 @@ const FamilyImage = () => {
   return (
     <Box>
       <Link to="/">
-        <Box component="img" src="/static/family.png" width={400} alt="logo"  style={{ position:"absolute", left:"18%", bottom:"20%" }} />
+        <Box component="img" src="/static/family.png" width={400} alt="logo"  style={{ position:"absolute", left:"26%", bottom:"0" }} />
       </Link>
     </Box>
   );

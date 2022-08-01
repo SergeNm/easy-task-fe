@@ -1,14 +1,10 @@
-import React from "react";
-import { Link as RouterLink } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { Container, Typography, Link, Box, Divider, Grid } from "@mui/material";
 import styled from "@emotion/styled";
 import LoginForm from "../components/LoginForm";
 import { motion } from "framer-motion";
 import FamilyImage from "../components/FamilyImage";
-
-const HeadingStyle = styled(Box)({
-  textAlign: "center",
-});
 
 const ContentStyle = styled("div")({
   maxWidth: 480,
@@ -18,11 +14,13 @@ const ContentStyle = styled("div")({
   justifyContent: "center",
   flexDirection: "column",
   background: "white",
-  minWidth:320,
+  minWidth: 320,
+  borderRadius: "1em",
+  boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
 });
 
 let easing = [0.6, -0.05, 0.01, 0.99];
-const fadeInUp = {
+export const fadeInUp = {
   initial: {
     y: 60,
     opacity: 0,
@@ -39,6 +37,15 @@ const fadeInUp = {
 };
 
 const Login = ({ setAuth }) => {
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+  useEffect(() => {
+    if (token ) {
+      navigate(from, { replace: true });
+    }
+  }, [token, from, setAuth, navigate]);
   return (
     <Box
       component="div"
@@ -46,39 +53,57 @@ const Login = ({ setAuth }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        marginTop: "2em",
+        // marginTop: "2em",
       }}
     >
-      <Grid container sx={{width:{
-        xs: "100%",
-        sm: "100%",
-        md: "80%",
-      }, background: "#51C8BC",}}>
+      <Grid
+        container
+        sx={{
+          width: {
+            xs: "100%",
+            sm: "100%",
+            md: "75%",
+          },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Grid item xs={12} sm={4}>
-          <FamilyImage />
+          <Box
+            sx={{
+              background: "#51C8BC",
+              width: "30vw",
+              height: "100vh",
+              borderRadius: "1em",
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                color: "white",
+                textAlign: "center",
+                padding: "1em",
+              }}
+            >
+              Easy task !
+            </Typography>
+            <FamilyImage />
+          </Box>
         </Grid>
         <Grid item xs={6}>
           <Container maxWidth="sm">
             <ContentStyle>
-              <HeadingStyle component={motion.div} {...fadeInUp}>
-                {/* <Logo /> */}
-                <Typography sx={{ color: "text.secondary", mb: 5 }}>
-                  Login to your account
-                </Typography>
-              </HeadingStyle>
-
               <Box component={motion.div} {...fadeInUp}>
-                Login..........
+                Login
               </Box>
-
+              <LoginForm setAuth={setAuth} />
               <Divider sx={{ my: 3 }} component={motion.div} {...fadeInUp}>
                 <Typography variant="body2" sx={{ color: "text.secondary" }}>
                   OR
                 </Typography>
               </Divider>
-
-              <LoginForm setAuth={setAuth} />
-
               <Typography
                 component={motion.p}
                 {...fadeInUp}
