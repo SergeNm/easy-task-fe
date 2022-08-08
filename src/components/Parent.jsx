@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import AddIcon from "@mui/icons-material/Add";
 import Stack from "@mui/material/Stack";
 import AllKids from "./AllKids";
-import Requests from "./Requests";
+import Requests from "./SingleTask";
 import NewKid from "./NewKidModal";
 
 const Parent = () => {
@@ -21,7 +21,10 @@ const Parent = () => {
       <AllKids />
     </div>
   ) : tab === "Requests" ? (
-    <Requests />
+    <>
+      <Requests />
+      <Requests />
+    </>
   ) : (
     <div>Parent</div>
   );

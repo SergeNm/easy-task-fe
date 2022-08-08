@@ -44,7 +44,7 @@ export const createKid = createAsyncThunk(
           fullname,
           email,
           password,
-          phone:tel,  
+          phone: tel,
         },
         {
           headers: {
@@ -53,6 +53,44 @@ export const createKid = createAsyncThunk(
         }
       );
       return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const createCommentOfTask = createAsyncThunk(
+  "task/createCommentOfTask",
+  async ({ id, taskid, comment, token }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(
+        `/parent/${id}/tasks/${taskid}/comment`,
+        {
+          comment,
+        },
+        {
+          headers: {
+            Authorization: `${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const fetchKidComments = createAsyncThunk(
+  "task/fetchKidComments",
+  async ({ id, taskid, token }, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/parent/${id}/tasks/${taskid}`, {
+        headers: {
+          Authorization: `${localStorage.getItem("token")}`,
+        },
+      });
+      return response.data.message.TaskWithComment;
     } catch (error) {
       return rejectWithValue(error.message);
     }

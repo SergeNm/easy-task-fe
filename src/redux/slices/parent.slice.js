@@ -3,6 +3,8 @@ import {
   fetchAllKids,
   fetchTaskByKid,
   createKid,
+  createCommentOfTask,
+  fetchKidComments,
 } from "../thunks/parent.thunk";
 
 const parentSlice = createSlice({
@@ -13,6 +15,7 @@ const parentSlice = createSlice({
     loading: true,
     error: false,
     message: "",
+    comments:[],
     kid: {
       openModal: false,
     },
@@ -23,7 +26,7 @@ const parentSlice = createSlice({
     },
     toggleKidModal: (state, action) => {
       state.kid.openModal = action.payload;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(fetchAllKids.pending, (state) => {
@@ -66,8 +69,36 @@ const parentSlice = createSlice({
       state.error = true;
       state.message = action.payload;
     });
+
+    // CREATE COMMENT OF TASK
+    builder.addCase(createCommentOfTask.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(createCommentOfTask.fulfilled, (state, action) => {
+      state.comments.push(action.payload);
+      state.loading = false;
+    });
+    builder.addCase(createCommentOfTask.rejected, (state, action) => {
+      state.loading = false;
+      state.error = true;
+      state.message = action.payload;
+    });
+
+    // FETCH KID COMMENTS
+    builder.addCase(fetchKidComments.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(fetchKidComments.fulfilled, (state, action) => {
+      // state.kidTasks = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(fetchKidComments.rejected, (state, action) => {
+      state.loading = false;
+      state.error = true;
+      state.message = action.payload;
+    });
   },
 });
 
 export const parentReducer = parentSlice.reducer;
-export const { setKids , toggleKidModal} = parentSlice.actions;
+export const { setKids, toggleKidModal } = parentSlice.actions;

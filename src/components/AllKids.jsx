@@ -15,6 +15,8 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchAllKids, fetchTaskByKid } from "../redux/thunks/parent.thunk";
+import SingleTask from "./SingleTask";
+import { Card, Stack } from "@mui/material";
 
 function createData(id, fullName, phone, email) {
   return {
@@ -22,7 +24,6 @@ function createData(id, fullName, phone, email) {
     fullName,
     phone,
     email,
-    
   };
 }
 
@@ -62,26 +63,45 @@ function Row(props) {
                 Tasks
               </Typography>
               <Table size="small" aria-label="purchases">
-                <TableHead>
+                {/* <TableHead>
                   <TableRow>
                     <TableCell>Name</TableCell>
                     <TableCell>Start Time</TableCell>
                     <TableCell align="right">End Time</TableCell>
                   </TableRow>
-                </TableHead>
+                </TableHead> */}
                 <TableBody>
-                  {kidTasks &&
-                    kidTasks.map((kidsRow, index) => (
-                      <TableRow key={index}>
-                        <TableCell component="th" scope="row">
+                  <Card sx={{ overflow: "auto", maxWidth: "100vw" }}>
+                    <Stack direction="row" spacing={2}>
+                      {kidTasks &&
+                        kidTasks.map((kidsRow, index) => (
+                          <TableRow key={index}>
+                            {/* <TableCell component="th" scope="row">
                           {kidsRow.name}
                         </TableCell>
-                        <TableCell>{new Date(kidsRow.start_date).toLocaleString()}</TableCell>
+                        <TableCell>
+                          {new Date(kidsRow.start_date).toLocaleString()}
+                        </TableCell>
                         <TableCell align="right">
                           {new Date(kidsRow.end_date).toLocaleString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                        </TableCell> */}
+
+                            <SingleTask
+                              name={kidsRow.name}
+                              id={kidsRow.id}
+                              description={kidsRow.description}
+                              end_date={new Date(
+                                kidsRow.end_date
+                              ).toLocaleString()}
+                              start_date={new Date(
+                                kidsRow.start_date
+                              ).toLocaleString()}
+                              userId={kidsRow.userid}
+                            />
+                          </TableRow>
+                        ))}
+                    </Stack>
+                  </Card>
                 </TableBody>
               </Table>
             </Box>
@@ -97,13 +117,13 @@ Row.propTypes = {
     phone: PropTypes.string.isRequired,
     email: PropTypes.string.isRequired,
     fullName: PropTypes.string.isRequired,
-    kids: PropTypes.arrayOf(
-      PropTypes.shape({
-        amount: PropTypes.number.isRequired,
-        customerId: PropTypes.string.isRequired,
-        date: PropTypes.string.isRequired,
-      })
-    ).isRequired,
+    // kids: PropTypes.arrayOf(
+    //   PropTypes.shape({
+    //     amount: PropTypes.number.isRequired,
+    //     customerId: PropTypes.string.isRequired,
+    //     date: PropTypes.string.isRequired,
+    //   })
+    // ).isRequired,
   }).isRequired,
 };
 

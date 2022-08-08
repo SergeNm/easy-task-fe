@@ -231,6 +231,7 @@ const DailyTasks = () => {
           name: added.title,
           start_date: new Date(added.startDate),
           end_date: new Date(added.endDate),
+          token,
         })
       );
       console.log(res);

@@ -5,7 +5,7 @@ const token = localStorage.getItem("token");
 
 export const createTask = createAsyncThunk(
   "task/create",
-  async ({ name, start_date, end_date }, { rejectWithValue }) => {
+  async ({ name, start_date, end_date , token}, { rejectWithValue }) => {
     try {
       const response = await api.post(
         "/tasks",
