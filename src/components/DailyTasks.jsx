@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import Paper from "@mui/material/Paper";
 import {
@@ -17,7 +17,6 @@ import {
 } from "@devexpress/dx-react-scheduler-material-ui";
 import { useDispatch, useSelector } from "react-redux";
 import IconButton from "@mui/material/IconButton";
-import MoreIcon from "@mui/icons-material/MoreVert";
 import Grid from "@mui/material/Grid";
 import Room from "@mui/icons-material/Room";
 import { styled } from "@mui/material/styles";
@@ -28,7 +27,8 @@ import {
   fetchTasks,
   updateTask,
 } from "../redux/thunks/task.thunk";
-import { setTasks } from "../redux/slices/task.slice";
+import { setTask, setTasks } from "../redux/slices/task.slice";
+import MoreMenu from "./MoreMenu";
 
 const Appointment = ({ children, style, ...restProps }) => (
   <Appointments.Appointment
@@ -39,6 +39,7 @@ const Appointment = ({ children, style, ...restProps }) => (
       borderRadius: "8px",
     }}
   >
+    {/* {console.log(restProps)} */}
     {children}
   </Appointments.Appointment>
 );
@@ -87,20 +88,11 @@ const classes = {
 
 const StyledAppointmentTooltipHeader = styled(AppointmentTooltip.Header)(
   () => ({
-    [`&.${classes.firstRoom}`]: {
-      background:
-        "url(https://js.devexpress.com/Demos/DXHotels/Content/Pictures/Lobby-4.jpg)",
-    },
-    [`&.${classes.secondRoom}`]: {
-      background:
-        "url(https://js.devexpress.com/Demos/DXHotels/Content/Pictures/MeetingRoom-4.jpg)",
-    },
     [`&.${classes.thirdRoom}`]: {
-      background:
-        "url(https://js.devexpress.com/Demos/DXHotels/Content/Pictures/MeetingRoom-0.jpg)",
+      background: "url(/static/family.png)",
     },
     [`&.${classes.header}`]: {
-      height: "260px",
+      height: "100px",
       backgroundSize: "cover",
     },
   })
@@ -138,25 +130,33 @@ const getClassByLocation = (location) => {
   return classes.thirdRoom;
 };
 
-const Header = ({ children, appointmentData, ...restProps }) => (
-  <StyledAppointmentTooltipHeader
-    {...restProps}
-    className={classNames(
-      getClassByLocation(classes, appointmentData.location),
-      classes.header
-    )}
-    appointmentData={appointmentData}
-  >
-    <StyledIconButton
-      /* eslint-disable-next-line no-alert */
-      onClick={() => alert(JSON.stringify(appointmentData))}
-      className={classes.commandButton}
-      size="large"
+const Header = ({ children, appointmentData, ...restProps }) => {
+  const dispatch = useDispatch();
+  dispatch(setTask(appointmentData));
+  return (
+    <StyledAppointmentTooltipHeader
+      {...restProps}
+      className={classNames(
+        getClassByLocation(classes, appointmentData.location),
+        classes.header
+      )}
+      appointmentData={appointmentData}
     >
-      <MoreIcon />
-    </StyledIconButton>
-  </StyledAppointmentTooltipHeader>
-);
+      {console.log(
+        "🚀 ~ file: DailyTasks.jsx ~ line 134 ~ appointmentData",
+        appointmentData
+      )}
+      <StyledIconButton
+        /* eslint-disable-next-line no-alert */
+        // onClick={() => alert(JSON.stringify(appointmentData))}
+        className={classes.commandButton}
+        size="large"
+      >
+        <MoreMenu />
+      </StyledIconButton>
+    </StyledAppointmentTooltipHeader>
+  );
+};
 
 const Content = ({ children, appointmentData, ...restProps }) => (
   <AppointmentTooltip.Content {...restProps} appointmentData={appointmentData}>
@@ -165,7 +165,9 @@ const Content = ({ children, appointmentData, ...restProps }) => (
         <StyledRoom className={classes.icon} />
       </StyledGrid>
       <Grid item xs={10}>
-        <span>{appointmentData.location}</span>
+        <span>
+          {appointmentData.isReview ? "Review Requested" : "No review"}
+        </span>
       </Grid>
     </Grid>
   </AppointmentTooltip.Content>
@@ -178,10 +180,20 @@ const CommandButton = ({ ...restProps }) => (
   />
 );
 
-const DailyTasks = ({ setAuth, addShift, shifts, deleteShift }) => {
+const DailyTasks = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { tasks } = useSelector((state) => state.task);
+
+  //MENU
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   // const [data, setData] = useState(tsks);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -202,12 +214,10 @@ const DailyTasks = ({ setAuth, addShift, shifts, deleteShift }) => {
   };
 
   const commitChanges = async ({ added, changed, deleted }) => {
-    console.log("----------", deleted, changed, added);
-
     let newData = [...tasks];
     if (added) {
       const startingAddedId =
-        newData > 0 ? newData[tasks.length - 1].id + 1 : 0;
+        newData.length > 0 ? newData[tasks.length - 1].id + 1 : 0;
       newData = [
         ...newData,
         {
@@ -247,10 +257,11 @@ const DailyTasks = ({ setAuth, addShift, shifts, deleteShift }) => {
     }
     dispatch(setTasks(newData));
   };
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    dispatch(fetchTasks());
-  }, [dispatch]);
+    token && dispatch(fetchTasks({ token }));
+  }, [dispatch, token]);
 
   return (
     <Paper>

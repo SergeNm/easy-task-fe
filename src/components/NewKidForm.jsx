@@ -12,8 +12,10 @@ import {
 import { LoadingButton } from "@mui/lab";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
-import { fetchSignup } from "../redux/thunks/user.thunk";
+import { createKid } from "../redux/thunks/parent.thunk";
 import { useDispatch, useSelector } from "react-redux";
+import { toggleKidModal } from "../redux/slices/parent.slice";
+import { toggleSnackbar } from "../redux/slices/user.slice";
 
 /////////////////////////////////////////////////////////////
 let easing = [0.6, -0.05, 0.01, 0.99];
@@ -27,13 +29,14 @@ const animate = {
   },
 };
 
-const SignupForm = () => {
+const NewKidForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { message } = useSelector((state) => state.parent);
 
   const [showPassword, setShowPassword] = useState(false);
 
-  const SignupSchema = Yup.object().shape({
+  const NewKidSchema = Yup.object().shape({
     fullname: Yup.string()
       .min(2, "Too Short!")
       .max(50, "Too Long!")
@@ -56,13 +59,31 @@ const SignupForm = () => {
       phone: "",
       password: "",
     },
-    validationSchema: SignupSchema,
+    validationSchema: NewKidSchema,
     onSubmit: async () => {
       const { fullname, email, phone, password } = formik.values;
-      const res = await dispatch(fetchSignup({ fullname, email, phone, password }));
-      const { token } = res.payload;
-      token && localStorage.setItem("token", token);
-      navigate("/");
+      const res = await dispatch(
+        createKid({ fullname, email, phone, password })
+      );
+      if (res.payload.id) {
+        dispatch(toggleKidModal(false));
+        dispatch(
+          toggleSnackbar({
+            showSnackbar: true,
+            message: "Kid created successfully",
+            severity: "success",
+          })
+        );
+      } else {
+        dispatch(toggleKidModal(false));
+        message && dispatch(
+          toggleSnackbar({
+            showSnackbar: true,
+            message: message,
+            severity: "error",
+          })
+        );
+      }
     },
   });
 
@@ -157,7 +178,7 @@ const SignupForm = () => {
                 variant="contained"
                 loading={isSubmitting}
               >
-                Sign up
+                ADD KID
               </LoadingButton>
             </Box>
           </Stack>
@@ -167,4 +188,4 @@ const SignupForm = () => {
   );
 };
 
-export default SignupForm;
+export default NewKidForm;

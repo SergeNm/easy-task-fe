@@ -13,31 +13,29 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchAllKids, fetchTaskByKid } from "../redux/thunks/parent.thunk";
 
-function createData(fullName, phone, email) {
+function createData(id, fullName, phone, email) {
   return {
+    id,
     fullName,
     phone,
     email,
-    history: [
-      {
-        date: "2020-01-05",
-        customerId: "11091700",
-        amount: 3,
-      },
-      {
-        date: "2020-01-02",
-        customerId: "Anonymous",
-        amount: 1,
-      },
-    ],
+    
   };
 }
 
 function Row(props) {
   const { row } = props;
   const [open, setOpen] = React.useState(false);
+  const dispatch = useDispatch();
+  const { kidTasks } = useSelector((state) => state.parent);
 
+  const handleTaskByKid = () => {
+    setOpen(!open);
+    dispatch(fetchTaskByKid(row.id));
+  };
   return (
     <React.Fragment>
       <TableRow sx={{ "& > *": { borderBottom: "unset" } }}>
@@ -45,7 +43,7 @@ function Row(props) {
           <IconButton
             aria-label="expand row"
             size="small"
-            onClick={() => setOpen(!open)}
+            onClick={() => handleTaskByKid()}
           >
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
@@ -61,27 +59,29 @@ function Row(props) {
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               <Typography variant="h6" gutterBottom component="div">
-                History
+                Tasks
               </Typography>
               <Table size="small" aria-label="purchases">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell align="right">Amount</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Start Time</TableCell>
+                    <TableCell align="right">End Time</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.history.map((historyRow, index) => (
-                    <TableRow key={index}>
-                      <TableCell component="th" scope="row">
-                        {historyRow.date}
-                      </TableCell>
-                      <TableCell>{historyRow.customerId}</TableCell>
-                      <TableCell align="right">{historyRow.amount}</TableCell>
-                     
-                    </TableRow>
-                  ))}
+                  {kidTasks &&
+                    kidTasks.map((kidsRow, index) => (
+                      <TableRow key={index}>
+                        <TableCell component="th" scope="row">
+                          {kidsRow.name}
+                        </TableCell>
+                        <TableCell>{new Date(kidsRow.start_date).toLocaleString()}</TableCell>
+                        <TableCell align="right">
+                          {new Date(kidsRow.end_date).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </Box>
@@ -97,7 +97,7 @@ Row.propTypes = {
     phone: PropTypes.string.isRequired,
     email: PropTypes.string.isRequired,
     fullName: PropTypes.string.isRequired,
-    history: PropTypes.arrayOf(
+    kids: PropTypes.arrayOf(
       PropTypes.shape({
         amount: PropTypes.number.isRequired,
         customerId: PropTypes.string.isRequired,
@@ -107,15 +107,18 @@ Row.propTypes = {
   }).isRequired,
 };
 
-const rows = [
-  createData("Frozen yoghurt", "159", " 6.0"),
-  createData("Ice cream sandwich", "237", "9.0"),
-  createData("Eclair", "262", " 16.0"),
-  createData("Cupcake", "305", "3.7", "67"),
-  createData("Gingerbread", "356", " 16.0"),
-];
-
 export default function AllKids() {
+  const dispatch = useDispatch();
+
+  const { kids } = useSelector((state) => state.parent);
+  const rows =
+    kids &&
+    kids.map((kid) => createData(kid.id, kid.fullname, kid.phone, kid.email));
+
+  React.useEffect(() => {
+    dispatch(fetchAllKids());
+  }, [dispatch]);
+
   return (
     <TableContainer component={Paper}>
       <Table aria-label="collapsible table">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import TextField from "@material-ui/core/TextField";
 import { Form, FormikProvider, useFormik } from "formik";
@@ -18,7 +18,7 @@ import { LoadingButton } from "@mui/lab";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
 import { fetchLogin } from "../redux/thunks/user.thunk";
-import { setUser } from "../redux/slices/user.slice";
+import { toggleSnackbar } from "../redux/slices/user.slice";
 import { useDispatch, useSelector } from "react-redux";
 
 let easing = [0.6, -0.05, 0.01, 0.99];
@@ -36,7 +36,7 @@ const LoginForm = ({ setAuth }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { user, isLoading, error } = useSelector((state) => state.user);
+  const { message } = useSelector((state) => state.user);
   const from = location.state?.from?.pathname || "/";
   const [showPassword, setShowPassword] = useState(false);
 
@@ -59,13 +59,26 @@ const LoginForm = ({ setAuth }) => {
       const res = await dispatch(fetchLogin({ email, password }));
       const { token } = res.payload;
       token && localStorage.setItem("token", token);
-     
+
       setTimeout(() => {
         if (res.payload.token) {
-          setAuth(true);
+          dispatch(
+            toggleSnackbar({
+              showSnackbar: true,
+              message: "Login Successful",
+              severity: "success",
+            })
+          );
           navigate(from, { replace: true });
         } else {
-          alert("Invalid email or password");
+          console.log(res)
+          dispatch(
+            toggleSnackbar({
+              showSnackbar: true,
+              message: res.payload,
+              severity: "error",
+            })
+          );
         }
       }, 2000);
     },
@@ -73,8 +86,6 @@ const LoginForm = ({ setAuth }) => {
 
   const { errors, touched, values, isSubmitting, handleSubmit, getFieldProps } =
     formik;
-
-  
 
   return (
     <FormikProvider value={formik}>

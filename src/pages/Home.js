@@ -108,6 +108,15 @@ export default function MiniDrawer({ role, menuItems, menuItems2 }) {
   const handleDrawerClose = () => {
     setOpen(false);
   };
+  const token = localStorage.getItem("token");
+
+  React.useEffect(() => {
+    console.log("--------------------------------",token);
+    if (token === "undefined") {
+      // Navigate("/");
+      return;
+    }
+  }, [token]);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -191,9 +200,7 @@ export default function MiniDrawer({ role, menuItems, menuItems2 }) {
                       <PeopleIcon />
                     ) : text === "Requests" ? (
                       <ReviewsIcon />
-                    ) : (
-                      null
-                    )}
+                    ) : null}
                   </ListItemIcon>
                   <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>

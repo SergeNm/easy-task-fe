@@ -36,7 +36,7 @@ export const fadeInUp = {
   },
 };
 
-const Login = ({ setAuth }) => {
+const Login = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +45,7 @@ const Login = ({ setAuth }) => {
     if (token ) {
       navigate(from, { replace: true });
     }
-  }, [token, from, setAuth, navigate]);
+  }, [token, from, navigate]);
   return (
     <Box
       component="div"
@@ -98,7 +98,7 @@ const Login = ({ setAuth }) => {
               <Box component={motion.div} {...fadeInUp}>
                 Login
               </Box>
-              <LoginForm setAuth={setAuth} />
+              <LoginForm />
               <Divider sx={{ my: 3 }} component={motion.div} {...fadeInUp}>
                 <Typography variant="body2" sx={{ color: "text.secondary" }}>
                   OR

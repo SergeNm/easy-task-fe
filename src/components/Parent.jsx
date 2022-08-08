@@ -5,7 +5,7 @@ import AddIcon from "@mui/icons-material/Add";
 import Stack from "@mui/material/Stack";
 import AllKids from "./AllKids";
 import Requests from "./Requests";
-import NewKid from "./NewKid";
+import NewKid from "./NewKidModal";
 
 const Parent = () => {
   const { tab } = useSelector((state) => state.user);

@@ -6,32 +6,42 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import { useSelector } from "react-redux";
 import jwt from "jwt-decode";
-
+import MessageSnackbar from "./components/MessageSnackbar";
 
 function App() {
-  const [auth, setAuth] = useState(false);
   const token = localStorage.getItem("token");
+
   const user = token && jwt(token);
   // const { user } = useSelector((state) => state.user);
   const location = useLocation();
 
+
   return (
     <>
       <CssBaseline />
+      <MessageSnackbar />
       <Routes>
-        <Route path="/login" element={<Login setAuth={setAuth} />} />
-        <Route path="/signup" element={<Signup setAuth={setAuth} />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
         <Route
           path="/"
           element={
-            user && user.role === 'kid' ? (
-              <Home role='kid' menuItems={["Daily tasks", "All tasks"]} menuItems2={["logout"]} />
-            ) : user && user.role === 'Parent' ? (
+            user && user.role === "kid" ? (
+              <Home
+                role="kid"
+                menuItems={["Daily tasks", "All tasks"]}
+                menuItems2={["logout"]}
+              />
+            ) : user && user.role === "Parent" ? (
               // <Navigate to="/login" state={{ from: location }} replace />
-              <Home role='parent' menuItems={["Requests", "Kids"]} menuItems2={["logout"]} />
+              <Home
+                role="parent"
+                menuItems={["Requests", "Kids"]}
+                menuItems2={["logout"]}
+              />
             ) : (
-             <Navigate to="/login" state={{ from: location }} replace />
+              <Navigate to="/login" state={{ from: location }} replace />
               // <Home setAuth={setAuth} menuItems={["Requests", "Kids"]} menuItems2={["logout"]} />
             )
           }

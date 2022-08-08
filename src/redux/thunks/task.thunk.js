@@ -29,7 +29,7 @@ export const createTask = createAsyncThunk(
 
 export const fetchTasks = createAsyncThunk(
   "task/fetch",
-  async (thunkApi, { rejectWithValue }) => {
+  async ({token}, { rejectWithValue }) => {
     try {
       const response = await api.get("/tasks", {
         headers: {
@@ -77,6 +77,26 @@ export const deleteTask = createAsyncThunk(
         },
       });
       return { data: response.data, id };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const requestForReview = createAsyncThunk(
+  "task/requestForReview",
+  async ({ id }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(
+        `/tasks/${id}/available-for-review`,
+        {},
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+      return response.data;
     } catch (error) {
       return rejectWithValue(error);
     }

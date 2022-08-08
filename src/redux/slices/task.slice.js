@@ -5,6 +5,7 @@ import {
   fetchTasks,
   deleteTask,
   updateTask,
+  requestForReview,
 } from "../thunks/task.thunk";
 
 const taskSlice = createSlice({
@@ -42,6 +43,7 @@ const taskSlice = createSlice({
           endDate: new Date(task.end_date),
           title: task.name,
           id: task.id,
+          isReview: task.isReview,
         };
       });
       state.loading = false;
@@ -62,7 +64,36 @@ const taskSlice = createSlice({
       state.loading = false;
       state.error = true;
     });
-    //UPDATE TASK
+    //REQUEST FOR REVIEW
+    builder.addCase(requestForReview.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(requestForReview.fulfilled, (state, action) => {
+      state.tasks = state.tasks.map((task) => {
+        if (task.id === action.payload.id) {
+          task.status = "review";
+        }
+        return task;
+      });
+      state.loading = false;
+    });
+    builder.addCase(requestForReview.rejected, (state) => {
+      state.loading = false;
+      state.error = true;
+    });
+
+    // UPDATE TASK
+    builder.addCase(updateTask.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateTask.fulfilled, (state, action) => {
+      state.task = action.payload;
+      state.loading = false;
+    });
+    builder.addCase(updateTask.rejected, (state) => {
+      state.loading = false;
+      state.error = true;
+    });
   },
 });
 

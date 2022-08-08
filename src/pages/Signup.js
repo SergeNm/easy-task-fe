@@ -1,37 +1,28 @@
-import React from "react";
-import { Link as RouterLink } from "react-router-dom";
-import { Container, Typography, Link, Box, Divider } from "@mui/material";
+import React, { useEffect } from "react";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import { Container, Typography, Link, Box, Divider, Grid } from "@mui/material";
 import styled from "@emotion/styled";
-
 import SignupForm from "../components/SignupForm";
 import { motion } from "framer-motion";
+import FamilyImage from "../components/FamilyImage";
 
-//////////////////////////////////
-const RootStyle = styled("div")({
-  background: "rgb(249, 250, 251)",
-  height: "100vh",
-  display: "grid",
-  placeItems: "center",
-});
-
-const HeadingStyle = styled(Box)({
-  textAlign: "center",
-});
-
-const ContentStyle = styled(Box)({
+const ContentStyle = styled("div")({
   maxWidth: 480,
-  padding: 25,
-  margin: "auto",
+  padding: "1em",
+  margin: "1em",
   display: "flex",
   justifyContent: "center",
   flexDirection: "column",
-  background: "#fff",
+  background: "white",
+  minWidth: 320,
+  borderRadius: "1em",
+  boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
 });
 
 let easing = [0.6, -0.05, 0.01, 0.99];
-const fadeInUp = {
+export const fadeInUp = {
   initial: {
-    y: 40,
+    y: 60,
     opacity: 0,
     transition: { duration: 0.6, ease: easing },
   },
@@ -45,63 +36,91 @@ const fadeInUp = {
   },
 };
 
-const Signup = ({ setAuth }) => {
+const Signup = () => {
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+  useEffect(() => {
+    if (token) {
+      navigate(from, { replace: true });
+    }
+  }, [token, from, navigate]);
   return (
-    <RootStyle>
-      <Container maxWidth="sm">
-        <ContentStyle>
-          <HeadingStyle component={motion.div} {...fadeInUp}>
-
-            <Typography sx={{ color: "text.secondary", mb: 5 }}>
-              Enter your details below.
+    <Box
+      component="div"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        // marginTop: "2em",
+      }}
+    >
+      <Grid
+        container
+        sx={{
+          width: {
+            xs: "100%",
+            sm: "100%",
+            md: "75%",
+          },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Grid item xs={12} sm={4}>
+          <Box
+            sx={{
+              background: "#51C8BC",
+              width: "30vw",
+              height: "100vh",
+              borderRadius: "1em",
+              boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                color: "white",
+                textAlign: "center",
+                padding: "1em",
+              }}
+            >
+              Easy task !
             </Typography>
-          </HeadingStyle>
-
-          <Box component={motion.div} {...fadeInUp}>
-            Signup.........
+            <FamilyImage />
           </Box>
-
-          <Divider sx={{ my: 3 }} component={motion.div} {...fadeInUp}>
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-              OR
-            </Typography>
-          </Divider>
-
-          <SignupForm setAuth={setAuth} />
-
-          <Typography
-            component={motion.p}
-            {...fadeInUp}
-            variant="body2"
-            align="center"
-            sx={{ color: "text.secondary", mt: 2 }}
-          >
-            By registering, I agree to{" "}
-            <Link underline="always" color="text.primary" href="#">
-              Terms of Service
-            </Link>{" "}
-            &{" "}
-            <Link underline="always" color="text.primary" href="#">
-              Privacy Policy
-            </Link>
-            .
-          </Typography>
-
-          <Typography
-            component={motion.p}
-            {...fadeInUp}
-            variant="body2"
-            align="center"
-            sx={{ mt: 3 }}
-          >
-            Have an account?{" "}
-            <Link variant="subtitle2" component={RouterLink} to="/login">
-              Login
-            </Link>
-          </Typography>
-        </ContentStyle>
-      </Container>
-    </RootStyle>
+        </Grid>
+        <Grid item xs={6}>
+          <Container maxWidth="sm">
+            <ContentStyle>
+              <Box component={motion.div} {...fadeInUp}>
+                Signup
+              </Box>
+              <SignupForm />
+              <Divider sx={{ my: 3 }} component={motion.div} {...fadeInUp}>
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                  OR
+                </Typography>
+              </Divider>
+              <Typography
+                component={motion.p}
+                {...fadeInUp}
+                variant="body2"
+                align="center"
+                sx={{ mt: 3 }}
+              >
+                Already have account?
+                <Link variant="subtitle2" component={RouterLink} to="/login">
+                  Login
+                </Link>
+              </Typography>
+            </ContentStyle>
+          </Container>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 
